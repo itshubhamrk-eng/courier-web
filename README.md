@@ -1,5 +1,10 @@
 # Courier SaaS — Admin Console (Angular 20)
 
+> Split from `courier-management-backend` (the `frontend/` folder), history kept. The API lives in
+> [`courier-service`](https://github.com/itshubhamrk-eng/courier-service). The `Image` workflow publishes
+> `ghcr.io/<owner>/courier-web`; its nginx forwards `/api/` to a host named `backend`.
+> "Sign in with OCCPL" is the `/sso` route (see `courier-service`'s `MEMORY/modules/platform-integration.md`).
+
 Premium enterprise UI foundation for the Multi-Tenant Courier SaaS backend.
 
 ## Stack
