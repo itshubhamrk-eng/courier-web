@@ -123,7 +123,9 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () => import('@layouts/auth-layout/auth-layout').then((m) => m.AuthLayout),
     children: [
-      { path: '', loadComponent: () => import('@features/auth/platform-sign-in').then((m) => m.PlatformSignIn) }
+      { path: '', loadComponent: () => import('@features/auth/platform-sign-in').then((m) => m.PlatformSignIn) },
+      // The platform's launch path allows no query string, so it opens `/sso/<company id>`; the sign-in then returns to `/sso`.
+      { path: ':company', loadComponent: () => import('@features/auth/platform-sign-in').then((m) => m.PlatformSignIn) }
     ]
   },
   {
