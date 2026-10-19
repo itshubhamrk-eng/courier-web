@@ -4,7 +4,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { PlatformSsoService } from '@core/auth/platform-sso.service';
 
 /**
- * `/sso` — both ends of "Sign in with OCCPL". Opened from the platform with `?company=<platform company id>` it sends
+ * `/sso` — both ends of "Sign in with OCCPL". Opened from the platform as `/sso/<platform company id>` (or with
+ * `?company=<platform company id>`) it sends
  * the browser to the platform; when the platform sends it back with `?code=…&state=…` it completes the sign-in.
  */
 @Component({
@@ -52,7 +53,7 @@ export class PlatformSignIn implements OnInit {
         return;
       }
 
-      const company = q.get('company') ?? this.sso.lastCompany;
+      const company = this.route.snapshot.paramMap.get('company') ?? q.get('company') ?? this.sso.lastCompany;
       if (!company) { this.error.set('Open Courier from the OCCPL platform to sign in.'); return; }
       this.sso.begin(config, company).catch(() => this.error.set('Could not start the platform sign-in.'));
     });
