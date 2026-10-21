@@ -104,6 +104,7 @@ export const NAVIGATION: NavNode[] = [
       // MEMORY/modules/hub-operations.md decision 1. HUB_VIEW is the catalogue's own
       // legacy alias for HUB_READ (never a "_VIEW" suffix code otherwise).
       { id: 'hubs', title: 'Hubs', icon: 'hub', route: '/hubs', permission: 'HUB_VIEW', roles: MANAGERS },
+      { id: 'courier-integrations', title: 'Courier Integrations', icon: 'local_shipping', route: '/courier-integrations', roles: COMPANY_ONLY },
       { id: 'company-settings', title: 'Company Settings', icon: 'tune', route: '/settings', permission: 'SETTINGS_READ', roles: COMPANY_ONLY },
       // User Activity & Audit Logging: reuses AUDIT_READ/SEARCH/EXPORT, seeded since V6
       // and unused until this module (MEMORY/modules/activity-log.md) — no new

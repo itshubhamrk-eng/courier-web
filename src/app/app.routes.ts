@@ -890,6 +890,10 @@ export const routes: Routes = [
         loadComponent: () => import('@features/permissions/permission-view').then((m) => m.PermissionView)
       },
       {
+        path: 'courier-integrations', title: 'Courier Integrations', canActivate: [roleGuard], data: { roles: COMPANY_ONLY },
+        loadComponent: () => import('@features/courier-integrations/courier-integrations').then((m) => m.CourierIntegrations)
+      },
+      {
         path: 'settings', title: 'Settings', canActivate: [roleGuard], data: { roles: COMPANY_ONLY },
         loadComponent: () => import('@features/settings/settings-page').then((m) => m.SettingsPage)
       },

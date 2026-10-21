@@ -75,6 +75,8 @@ export const API = {
    *  any authenticated company user reads, unlike `/companies/**` (SUPER_ADMIN only). */
   companyProfile: '/company-profile',
   companyRazorpayConfig: '/company-razorpay-config',
+  /** The company's own courier accounts for the customer shipping portal (COMPANY_ADMIN). */
+  courierIntegrations: '/courier-integrations',
   subscriptionPlans: '/subscription-plans',
   /** The platform console: platform dashboard and platform-operator accounts. */
   superAdmin: '/super-admin',
