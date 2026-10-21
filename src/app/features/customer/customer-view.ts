@@ -16,6 +16,7 @@ import { UiLoader } from '@shared/components/ui-loader/ui-loader';
 import { UiButton } from '@shared/components/ui-button/ui-button';
 import { DialogService } from '@shared/components/ui-dialog/dialog.service';
 import { CustomerSummaryCard } from './components/customer-summary-card';
+import { PortalAccessCard } from './components/portal-access-card';
 import { AddressList, AddressAction } from './components/address-list';
 import { AddressFormDialog } from './components/address-form-dialog';
 import { CustomerService } from './customer.service';
@@ -29,7 +30,7 @@ const ADDRESS_DELETERS = [AppRole.COMPANY_ADMIN];
   selector: 'app-customer-view',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, MatMenuModule, MatIconModule, UiCard, UiLoader, UiButton, CustomerSummaryCard, AddressList],
+  imports: [DatePipe, MatMenuModule, MatIconModule, UiCard, UiLoader, UiButton, CustomerSummaryCard, AddressList, PortalAccessCard],
   template: `
     <div class="page">
       @if (loading()) {
@@ -94,6 +95,10 @@ const ADDRESS_DELETERS = [AppRole.COMPANY_ADMIN];
             </dl>
           </app-card>
 
+          @if (can().portalAccess && customer()!.customerType === 'BUSINESS') {
+            <app-portal-access-card [customerId]="customer()!.id" [customerEmail]="customer()!.email ?? null" />
+          }
+
           <app-card title="Addresses" subtitle="Pickup and delivery locations on file for this customer.">
             @if (canAddAddress()) {
               <div class="cv__addr-bar">
@@ -147,7 +152,9 @@ export class CustomerView implements OnInit {
 
   readonly can = computed(() => ({
     update: this.perms.canAccess({ roles: WRITERS, permissions: ['CUSTOMER_UPDATE'] }),
-    lifecycle: this.perms.canAccess({ roles: LIFECYCLE, permissions: ['CUSTOMER_ACTIVATE', 'CUSTOMER_DEACTIVATE'] })
+    lifecycle: this.perms.canAccess({ roles: LIFECYCLE, permissions: ['CUSTOMER_ACTIVATE', 'CUSTOMER_DEACTIVATE'] }),
+    // Server-side COMPANY_ADMIN only; no separate permission code exists for it.
+    portalAccess: this.perms.hasAnyRole([AppRole.COMPANY_ADMIN])
   }));
   readonly canAddAddress = computed(() => this.perms.canAccess({ roles: WRITERS, permissions: ['ADDRESS_CREATE'] }));
   readonly canDeleteAddress = computed(() => this.perms.canAccess({ roles: ADDRESS_DELETERS, permissions: ['ADDRESS_DELETE'] }));
