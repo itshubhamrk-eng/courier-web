@@ -1,7 +1,7 @@
 # Courier SaaS — Admin Console (Angular 20)
 
 > Split from `courier-management-backend` (the `frontend/` folder), history kept. The API lives in
-> [`courier-service`](https://github.com/itshubhamrk-eng/courier-service). The `Release` workflow publishes
+> [`courier-service`](https://github.com/occplsoftech/courier-service). The `Release` workflow publishes
 > `ghcr.io/<owner>/courier-web`; its nginx forwards `/api/` to a host named `backend`.
 > Pipeline: `CI` (tests, build, image build) on every pull request; `Release` on every merge to `main` tests, publishes the image
 > (tags: commit SHA and `dev`), deploys it to the dev server, smoke-tests it and rolls back if the container is not healthy
