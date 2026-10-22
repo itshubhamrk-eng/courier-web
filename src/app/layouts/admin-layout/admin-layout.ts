@@ -41,10 +41,10 @@ import { Footer } from './components/footer';
     </div>
   `,
   styles: [`
-    .shell { display:flex; height:100vh; overflow:hidden; background:var(--surface-muted); }
+    .shell { display:flex; height:100vh; overflow:hidden; background:transparent; }
     .shell__main { flex:1; display:flex; flex-direction:column; min-width:0; }
-    .shell__content { flex:1; overflow:auto; padding:24px 32px 32px; background:var(--surface-muted); }
-    .shell__backdrop { position:fixed; inset:0; z-index:50; background:rgba(15,23,42,.5); backdrop-filter:blur(1px); }
+    .shell__content { flex:1; overflow:auto; padding:20px 28px 32px; background:transparent; }
+    .shell__backdrop { position:fixed; inset:0; z-index:50; background:rgb(20 20 40 / 45%); backdrop-filter:blur(1px); }
     .imp-banner { display:flex; align-items:center; gap:10px; padding:8px 20px; font:600 13px var(--font-sans);
       background:var(--warning-bg, #fff7ed); color:var(--warning, #b45309); }
     .imp-banner mat-icon { font-size:18px; width:18px; height:18px; }

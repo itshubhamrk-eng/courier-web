@@ -17,13 +17,13 @@ module.exports = {
         surface: { DEFAULT: 'var(--surface)', muted: 'var(--surface-muted)', border: 'var(--surface-border)' },
         content: { DEFAULT: 'var(--content-fg)', muted: 'var(--content-muted)' }
       },
-      borderRadius: { card: '14px', 'card-lg': '16px', field: '10px' },
+      borderRadius: { card: '18px', 'card-lg': '24px', field: '10px' },
       boxShadow: {
         card: '0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04)',
         'card-hover': '0 8px 24px rgba(16,24,40,.10)',
         pop: '0 12px 32px rgba(16,24,40,.14)'
       },
-      fontFamily: { sans: ['Inter', 'Roboto', 'system-ui', 'sans-serif'] }
+      fontFamily: { sans: ['Outfit Variable', 'system-ui', 'sans-serif'] }
     }
   },
   plugins: [],
