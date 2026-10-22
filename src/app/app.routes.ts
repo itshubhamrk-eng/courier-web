@@ -890,6 +890,18 @@ export const routes: Routes = [
         loadComponent: () => import('@features/permissions/permission-view').then((m) => m.PermissionView)
       },
       {
+        path: 'kyc', title: 'KYC',
+        loadComponent: () => import('@features/kyc/my-kyc').then((m) => m.MyKyc)
+      },
+      {
+        path: 'kyc/review', title: 'KYC Review', canActivate: [roleGuard], data: { roles: COMPANY_ONLY },
+        loadComponent: () => import('@features/kyc/kyc-review').then((m) => m.KycReview)
+      },
+      {
+        path: 'kyc/review/:type/:id', title: 'KYC', canActivate: [roleGuard], data: { roles: COMPANY_ONLY },
+        loadComponent: () => import('@features/kyc/kyc-review-detail').then((m) => m.KycReviewDetail)
+      },
+      {
         path: 'courier-integrations', title: 'Courier Integrations', canActivate: [roleGuard], data: { roles: COMPANY_ONLY },
         loadComponent: () => import('@features/courier-integrations/courier-integrations').then((m) => m.CourierIntegrations)
       },

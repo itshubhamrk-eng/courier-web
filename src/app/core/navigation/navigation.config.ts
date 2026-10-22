@@ -70,6 +70,8 @@ const HUB_OPS = [AppRole.COMPANY_ADMIN, AppRole.HUB_MANAGER];
 
 export const NAVIGATION: NavNode[] = [
   { id: 'dashboard', title: 'Dashboard', icon: 'dashboard', route: '/dashboard', order: 1 },
+  // KYC: every company user does their own (a branch manager also their branch's) — see MEMORY/modules/kyc.md.
+  { id: 'my-kyc', title: 'My KYC', icon: 'verified_user', route: '/kyc', order: 1.2, roles: COMPANY_ROLES },
 
   // The platform console. A super admin manages companies, their subscriptions and other
   // platform operators — and nothing operational. There is deliberately no branch,
@@ -104,6 +106,7 @@ export const NAVIGATION: NavNode[] = [
       // MEMORY/modules/hub-operations.md decision 1. HUB_VIEW is the catalogue's own
       // legacy alias for HUB_READ (never a "_VIEW" suffix code otherwise).
       { id: 'hubs', title: 'Hubs', icon: 'hub', route: '/hubs', permission: 'HUB_VIEW', roles: MANAGERS },
+      { id: 'kyc-review', title: 'KYC Review', icon: 'fact_check', route: '/kyc/review', roles: COMPANY_ONLY },
       { id: 'courier-integrations', title: 'Courier Integrations', icon: 'local_shipping', route: '/courier-integrations', roles: COMPANY_ONLY },
       { id: 'company-settings', title: 'Company Settings', icon: 'tune', route: '/settings', permission: 'SETTINGS_READ', roles: COMPANY_ONLY },
       // User Activity & Audit Logging: reuses AUDIT_READ/SEARCH/EXPORT, seeded since V6
