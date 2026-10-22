@@ -9,7 +9,7 @@ const base = `${environment.apiBaseUrl}/courier-integrations`;
 
 const shiprocket = (over: object = {}) => ({
   code: 'SHIPROCKET', name: 'Shiprocket', available: true, note: 'Use an API user.', source: 'COMPANY', enabled: true, connected: true,
-  credentialsUnreadable: false, lastTestedAt: null, lastTestOk: null, lastTestMessage: null,
+  credentialsUnreadable: false, lastTestedAt: null, lastTestOk: null, lastTestMessage: null, logoDataUrl: null,
   fields: [
     { key: 'email', label: 'API user e-mail', secret: false, required: true, help: null, value: 'api@shop.test', set: true },
     { key: 'password', label: 'API user password', secret: true, required: true, help: null, value: null, set: true },
@@ -17,7 +17,7 @@ const shiprocket = (over: object = {}) => ({
   ], ...over
 });
 const ekart = { code: 'EKART', name: 'Ekart', available: false, note: 'Integration not built yet.', source: 'NONE', enabled: false,
-  connected: false, credentialsUnreadable: false, fields: [], lastTestedAt: null, lastTestOk: null, lastTestMessage: null };
+  connected: false, credentialsUnreadable: false, fields: [], lastTestedAt: null, lastTestOk: null, lastTestMessage: null, logoDataUrl: null };
 
 describe('CourierIntegrations', () => {
   let http: HttpTestingController;
@@ -96,5 +96,26 @@ describe('CourierIntegrations', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('did not accept the e-mail and password');
+  });
+
+  it('refuses a logo over 150 KB or of another type without calling the server', () => {
+    const c = create().componentInstance;
+    const card = c.cards()[0];
+    const pick = (file: File) => c.onLogo(card, { target: { files: [file], value: '' } } as unknown as Event);
+    pick(new File([new Uint8Array(150 * 1024 + 1)], 'big.png', { type: 'image/png' }));
+    pick(new File(['<svg/>'], 'x.svg', { type: 'image/svg+xml' }));
+    http.expectNone(`${base}/SHIPROCKET/logo`);
+  });
+
+  it('uploads a valid logo, then reloads the list keeping unsaved edits', () => {
+    const c = create().componentInstance;
+    const card = c.cards()[0];
+    c.ctl(card, 'pickupLocation').setValue('TYPED');
+    c.onLogo(card, { target: { files: [new File([new Uint8Array([1])], 'l.png', { type: 'image/png' })], value: '' } } as unknown as Event);
+    http.expectOne(`${base}/SHIPROCKET/logo`).flush({ success: true, data: null });
+    http.expectOne(base).flush({ success: true, data: [shiprocket({ logoDataUrl: 'data:image/png;base64,AA==' }), ekart] });
+    const after = c.cards()[0];
+    expect(after.info.logoDataUrl).toContain('data:image/png');
+    expect(c.ctl(after, 'pickupLocation').value).toBe('TYPED');
   });
 });
