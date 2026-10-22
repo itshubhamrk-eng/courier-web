@@ -18,7 +18,7 @@ import { CustomerService } from './customer.service';
       <header class="page__head">
         <div><h1 class="text-h1">New Customer</h1><p class="text-caption">Register reusable customer master data for your company.</p></div>
       </header>
-      <app-customer-form mode="create" [initialType]="initialType" [saving]="saving()" (saved)="save($event)" (cancelled)="cancel()" />
+      <app-customer-form mode="create" [initialType]="initialType" [saving]="saving()" (logoPicked)="logo = $event" (saved)="save($event)" (cancelled)="cancel()" />
     </div>
   `
 })
@@ -29,6 +29,8 @@ export class CustomerCreate {
   private readonly router = inject(Router);
 
   readonly saving = signal(false);
+  /** The logo chosen in the form, uploaded once the customer exists. */
+  protected logo: File | null = null;
   protected readonly initialType: CustomerType =
     inject(ActivatedRoute).snapshot.queryParamMap.get('type') === 'BUSINESS' ? 'BUSINESS' : 'INDIVIDUAL';
 
@@ -40,9 +42,16 @@ export class CustomerCreate {
     this.saving.set(true);
     this.service.create(body as CreateCustomerRequest).subscribe({
       next: (c) => {
-        this.saving.set(false);
-        this.notify.success(`Customer ${c.customerCode} created.`);
-        this.router.navigate(['/customers', c.id]);
+        const done = () => {
+          this.saving.set(false);
+          this.notify.success(`Customer ${c.customerCode} created.`);
+          this.router.navigate(['/customers', c.id]);
+        };
+        if (!this.logo) { done(); return; }
+        this.service.uploadLogo(c.id, this.logo).subscribe({
+          next: done,
+          error: () => { this.notify.error('The customer was created, but the logo could not be saved. Upload it from Edit.'); done(); }
+        });
       },
       error: (err: HttpErrorResponse) => {
         this.saving.set(false);

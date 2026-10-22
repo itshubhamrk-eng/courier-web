@@ -79,6 +79,15 @@ const ADDRESS_DELETERS = [AppRole.COMPANY_ADMIN];
             </dl>
           </app-card>
 
+          <app-card title="Brand">
+            <dl class="kv">
+              <dt>Logo</dt>
+              <dd>@if (logoUrl()) { <img class="cv__logo" [src]="logoUrl()!" alt="Brand logo" /> } @else { — }</dd>
+              <dt>Website</dt>
+              <dd>@if (customer()!.website) { <a [href]="customer()!.website!" target="_blank" rel="noopener noreferrer">{{ customer()!.website }}</a> } @else { — }</dd>
+            </dl>
+          </app-card>
+
           <app-card title="Tax Details">
             <dl class="kv">
               <dt>GST Number</dt><dd class="mono">{{ customer()!.gstNumber || '—' }}</dd>
@@ -113,6 +122,7 @@ const ADDRESS_DELETERS = [AppRole.COMPANY_ADMIN];
     </div>
   `,
   styles: [`
+    .cv__logo { max-width:120px; max-height:64px; object-fit:contain; }
     .cv__banner { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:20px 24px; margin-bottom:16px; }
     .cv__actions { display:flex; gap:10px; align-items:center; flex:0 0 auto; }
     .kebab { border:1px solid var(--surface-border); background:var(--surface); cursor:pointer; color:var(--content-muted);
@@ -148,6 +158,7 @@ export class CustomerView implements OnInit {
 
   readonly loading = signal(true);
   readonly customer = signal<CustomerResponse | null>(null);
+  readonly logoUrl = signal<string | null>(null);
   private id = '';
 
   readonly can = computed(() => ({
@@ -169,6 +180,7 @@ export class CustomerView implements OnInit {
     this.service.get(this.id).subscribe({
       next: (c) => {
         this.customer.set(c);
+        if (c.hasLogo) this.service.logo(this.id).subscribe({ next: (l) => this.logoUrl.set(l.dataUrl), error: () => undefined });
         this.breadcrumb.set([{ label: 'Customers', route: '/customers' }, { label: c.displayName }]);
         this.loading.set(false);
       },

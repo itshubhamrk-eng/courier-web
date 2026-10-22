@@ -98,6 +98,10 @@ export interface CustomerResponse extends CustomerBusinessFields {
   email?: string | null;
   gstNumber?: string | null;
   panNumber?: string | null;
+  /** The customer's brand website (http/https URL). */
+  website?: string | null;
+  /** True when a brand logo is uploaded; fetch it with CustomerService.logo(). */
+  hasLogo?: boolean;
   /** Communication Center preferences — see MEMORY/modules/communication.md. Opt-out,
    *  not opt-in: a new customer starts with all three enabled. */
   whatsappEnabled: boolean;
@@ -130,6 +134,8 @@ export interface CreateCustomerRequest extends CustomerBusinessFields {
   email?: string | null;
   gstNumber?: string | null;
   panNumber?: string | null;
+  /** The customer's brand website (http/https URL). */
+  website?: string | null;
   /** Defaults to true server-side when omitted. */
   whatsappEnabled?: boolean;
   smsEnabled?: boolean;
@@ -152,6 +158,8 @@ export interface UpdateCustomerRequest extends CustomerBusinessFields {
   email?: string | null;
   gstNumber?: string | null;
   panNumber?: string | null;
+  /** The customer's brand website (http/https URL). */
+  website?: string | null;
   whatsappEnabled: boolean;
   smsEnabled: boolean;
   emailEnabled: boolean;

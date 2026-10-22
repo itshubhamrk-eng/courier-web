@@ -37,6 +37,15 @@ export class CustomerService {
     return this.api.put<CustomerResponse>(`${API.customers}/${id}`, body);
   }
 
+  // ---- brand logo (saved separately from the customer, so it never makes an open edit stale) -------
+  logo(id: string) { return this.api.get<{ dataUrl: string | null }>(`${API.customers}/${id}/logo`); }
+  uploadLogo(id: string, file: File) {
+    const body = new FormData();
+    body.append('file', file);
+    return this.api.put<void>(`${API.customers}/${id}/logo`, body);
+  }
+  removeLogo(id: string) { return this.api.delete<void>(`${API.customers}/${id}/logo`); }
+
   // ---- lifecycle (idempotent) -------------------------------------------------
   activate(id: string) { return this.api.patch<CustomerResponse>(`${API.customers}/${id}/activate`, {}); }
   deactivate(id: string) { return this.api.patch<CustomerResponse>(`${API.customers}/${id}/deactivate`, {}); }
