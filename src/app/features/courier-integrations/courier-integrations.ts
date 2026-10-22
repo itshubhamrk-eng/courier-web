@@ -53,6 +53,28 @@ interface Card {
                 }
               </div>
 
+              @if (card.info.available) {
+                <div class="logo">
+                  <span class="logo__box">
+                    @if (card.info.logoDataUrl) { <img [src]="card.info.logoDataUrl" [alt]="card.info.name + ' logo'" /> }
+                    @else { <span class="logo__none" aria-hidden="true">{{ card.info.name.slice(0, 2).toUpperCase() }}</span> }
+                  </span>
+                  <div class="logo__text">
+                    <strong>Logo</strong>
+                    <span class="hint">Shown to your customers next to {{ card.info.name }}. PNG, JPEG or WebP, up to 150 KB.</span>
+                    <div class="logo__actions">
+                      <app-button type="button" variant="stroked" icon="upload" [loading]="busy().has(card.info.code + ':logo')"
+                        (pressed)="picker.click()">{{ card.info.logoDataUrl ? 'Replace logo' : 'Upload logo' }}</app-button>
+                      @if (card.info.logoDataUrl) {
+                        <app-button type="button" variant="stroked" (pressed)="removeLogo(card)">Remove</app-button>
+                      }
+                      <input #picker type="file" hidden accept="image/png,image/jpeg,image/webp"
+                        (change)="onLogo(card, $event)" [attr.aria-label]="'Choose the ' + card.info.name + ' logo'" />
+                    </div>
+                  </div>
+                </div>
+              }
+
               @if (!card.info.available) {
                 <p class="text-caption">{{ card.info.note }}</p>
               } @else {
@@ -106,6 +128,12 @@ interface Card {
     .ci__status { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
     .badge { padding:2px 10px; border-radius:999px; font:600 12px var(--font-sans); background:var(--surface-muted); color:var(--content-muted); }
     .badge--ok { background:color-mix(in srgb, var(--success) 15%, transparent); color:var(--success); }
+    .logo { display:flex; gap:14px; align-items:center; padding:12px; border:1px dashed var(--surface-border); border-radius:12px; }
+    .logo__box { display:grid; place-items:center; flex:none; width:64px; height:64px; border-radius:12px; background:#fff; border:1px solid var(--surface-border); overflow:hidden; }
+    .logo__box img { max-width:85%; max-height:85%; object-fit:contain; }
+    .logo__none { font:700 18px var(--font-sans); color:var(--content-muted); }
+    .logo__text { display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .logo__actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
     .ci__form { display:flex; flex-direction:column; gap:14px; }
     .ci__field { display:flex; flex-direction:column; gap:4px; }
     .hint { font:400 12px var(--font-sans); color:var(--content-muted); }
@@ -193,6 +221,39 @@ export class CourierIntegrations implements OnInit {
         this.mark(key, false);
         this.notify.error(apiMessage(e, `Could not test ${card.info.name}.`));
       }
+    });
+  }
+
+  onLogo(card: Card, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (file.size > 150 * 1024) { this.notify.error('The logo is larger than 150 KB. Use a smaller image.'); return; }
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) { this.notify.error('The logo must be a PNG, JPEG or WebP image.'); return; }
+    const key = card.info.code + ':logo';
+    this.mark(key, true);
+    this.service.uploadLogo(card.info.code, file).subscribe({
+      next: () => { this.mark(key, false); this.notify.success(`${card.info.name} logo saved.`); this.reloadKeepingEdits(); },
+      error: (e) => { this.mark(key, false); this.notify.error(apiMessage(e, `Could not save the ${card.info.name} logo.`)); }
+    });
+  }
+
+  removeLogo(card: Card): void {
+    this.service.removeLogo(card.info.code).subscribe({
+      next: () => { this.notify.success(`${card.info.name} logo removed.`); this.reloadKeepingEdits(); },
+      error: (e) => this.notify.error(apiMessage(e, `Could not remove the ${card.info.name} logo.`))
+    });
+  }
+
+  /** Reloads the list but leaves each card's form alone, so typed-but-unsaved details survive a logo change. */
+  private reloadKeepingEdits(): void {
+    this.service.list().subscribe({
+      next: (rows) => this.cards.update((cards) => cards.map((c) => {
+        const fresh = rows.find((r) => r.code === c.info.code);
+        return fresh ? { info: fresh, form: c.form } : c;
+      })),
+      error: (e) => this.error.set(apiMessage(e, 'Could not load the courier integrations.'))
     });
   }
 

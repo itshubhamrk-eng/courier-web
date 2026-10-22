@@ -41,4 +41,18 @@ describe('CourierIntegrationService', () => {
     expect(d.request.method).toBe('DELETE');
     d.flush({ success: true, data: {} });
   });
+
+  it('uploads a logo as multipart PUT and removes it with DELETE', () => {
+    const file = new File([new Uint8Array([1, 2, 3])], 'logo.png', { type: 'image/png' });
+    service.uploadLogo('DELHIVERY', file).subscribe();
+    const u = http.expectOne(`${base}/DELHIVERY/logo`);
+    expect(u.request.method).toBe('PUT');
+    expect(u.request.body instanceof FormData).toBe(true);
+    expect((u.request.body as FormData).get('file')).toBeTruthy();
+    u.flush({ success: true, data: null });
+    service.removeLogo('DELHIVERY').subscribe();
+    const d = http.expectOne(`${base}/DELHIVERY/logo`);
+    expect(d.request.method).toBe('DELETE');
+    d.flush({ success: true, data: null });
+  });
 });

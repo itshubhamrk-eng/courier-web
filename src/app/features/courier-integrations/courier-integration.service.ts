@@ -33,6 +33,8 @@ export interface CourierIntegration {
   lastTestedAt: string | null;
   lastTestOk: boolean | null;
   lastTestMessage: string | null;
+  /** The courier's logo as a data URL, or null. */
+  logoDataUrl: string | null;
 }
 
 export interface SaveIntegrationRequest {
@@ -51,6 +53,14 @@ export class CourierIntegrationService {
   }
   test(code: string) {
     return this.api.post<CourierIntegration>(`${API.courierIntegrations}/${encodeURIComponent(code)}/test`, {});
+  }
+  uploadLogo(code: string, file: File) {
+    const body = new FormData();
+    body.append('file', file);
+    return this.api.put<void>(`${API.courierIntegrations}/${encodeURIComponent(code)}/logo`, body);
+  }
+  removeLogo(code: string) {
+    return this.api.delete<void>(`${API.courierIntegrations}/${encodeURIComponent(code)}/logo`);
   }
   disconnect(code: string) {
     return this.api.delete<CourierIntegration>(`${API.courierIntegrations}/${encodeURIComponent(code)}`);
