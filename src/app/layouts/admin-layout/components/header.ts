@@ -51,13 +51,14 @@ import { AiAssistantButton } from './ai-assistant-button';
   `,
   styles: [`
     .hd { height:var(--header-h); display:flex; align-items:center; justify-content:space-between; gap:16px;
-      padding:0 28px; margin:14px 24px 0; background:var(--surface); border:1px solid var(--surface-border);
-      border-radius:var(--r-card); box-shadow:var(--shadow-clay-sm); position:sticky; top:14px; z-index:20; }
+      padding:0 24px; margin:16px 24px 0; background:var(--occpl-color-surface-glass); backdrop-filter:blur(14px);
+      border:1px solid var(--surface-border); border-bottom:3px solid var(--occpl-color-primary);
+      border-radius:22px; box-shadow:var(--shadow-clay-sm); position:sticky; top:16px; z-index:20; }
     @media (max-width:1024px){ .hd{ padding:0 20px; margin:12px 16px 0; } }
     @media (max-width:640px){ .hd{ padding:0 14px; margin:10px 10px 0; gap:8px; } }
     .hd__left, .hd__right { display:flex; align-items:center; gap:8px; min-width:0; }
     .hd__brand { display:flex; align-items:center; gap:9px; }
-    .hd__logo { width:32px; height:32px; border-radius:11px; background:linear-gradient(155deg, var(--brand-400), var(--brand-600)); color:#fff;
+    .hd__logo { width:32px; height:32px; border-radius:11px; background:var(--occpl-gradient-button); color:#fff;
       display:grid; place-items:center; font:800 12px var(--font-display); flex-shrink:0; overflow:hidden; box-shadow:var(--shadow-clay-sm); }
     .hd__logo--img { background:var(--surface-muted); box-shadow:none; }
     .hd__logo--img img { width:100%; height:100%; object-fit:contain; }
@@ -65,7 +66,7 @@ import { AiAssistantButton } from './ai-assistant-button';
     .hd__divider { width:1px; height:24px; background:var(--surface-border); margin:0 4px; }
     .hd__icon-btn { position:relative; display:grid; place-items:center; width:40px; height:40px;
       border-radius:12px; border:0; background:transparent; color:var(--content-muted); cursor:pointer; transition:background .15s, box-shadow .15s; }
-    .hd__icon-btn:hover { background:var(--surface-muted); color:var(--content-fg); box-shadow:var(--shadow-clay-inset); }
+    .hd__icon-btn:hover { background:var(--occpl-color-info-surface); color:var(--content-fg); box-shadow:var(--shadow-clay-inset); }
 
     /* Below the breadcrumb-crowding point, drop brand text and divider + breadcrumb. */
     @media (max-width: 900px) { .hd__divider, app-breadcrumb { display:none; } }

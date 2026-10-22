@@ -26,9 +26,9 @@ import { RouterOutlet } from '@angular/router';
     </div>
   `,
   styles: [`
-    .auth { min-height:100vh; display:grid; grid-template-columns:1.1fr 1fr; background:var(--surface-muted); }
-    .auth__brand { position:relative; padding:48px; color:var(--sidebar-fg);
-      background:radial-gradient(1200px 600px at -10% -10%, var(--sidebar-hover), var(--sidebar-bg));
+    .auth { min-height:100vh; display:grid; grid-template-columns:1.1fr 1fr; gap:16px; padding:16px; }
+    .auth__brand { position:relative; padding:48px; color:var(--sidebar-fg); border-radius:28px; box-shadow:var(--occpl-shadow-md);
+      background:var(--occpl-gradient-brand);
       display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; }
     .auth__brand-top { display:flex; align-items:center; gap:12px; }
     .auth__logo-img { height:56px; width:auto; border-radius:12px; background:#fff; padding:6px 14px; box-shadow:var(--shadow-clay-sm); }
@@ -37,7 +37,7 @@ import { RouterOutlet } from '@angular/router';
     .auth__pitch h2 { font:700 34px/1.15 var(--font-display); letter-spacing:-.02em; color:var(--sidebar-fg-strong); max-width:16ch; }
     .auth__pitch p { color:var(--sidebar-fg); max-width:44ch; line-height:1.6; }
     .auth__foot { font-size:13px; color:var(--sidebar-section); }
-    .auth__panel { display:grid; place-items:center; padding:32px; background:var(--surface-muted); }
+    .auth__panel { display:grid; place-items:center; padding:32px; }
     @media (max-width: 900px) { .auth { grid-template-columns:1fr; } .auth__brand { display:none; } }
   `]
 })
