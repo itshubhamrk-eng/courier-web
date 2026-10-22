@@ -97,4 +97,20 @@ describe('CustomerService', () => {
       data: { content: [{ id: 's-1', code: 'MH', name: 'Maharashtra' }], page: 0, size: 200, totalElements: 1, totalPages: 1, first: true, last: true, hasNext: false }
     });
   });
+
+  it('uploads a brand logo as multipart PUT, removes it with DELETE and reads it with GET', () => {
+    service.uploadLogo('c1', new File([new Uint8Array([1])], 'l.png', { type: 'image/png' })).subscribe();
+    const u = http.expectOne(`${base}/customers/c1/logo`);
+    expect(u.request.method).toBe('PUT');
+    expect(u.request.body instanceof FormData).toBe(true);
+    u.flush({ success: true, data: null });
+    service.removeLogo('c1').subscribe();
+    const d = http.expectOne(`${base}/customers/c1/logo`);
+    expect(d.request.method).toBe('DELETE');
+    d.flush({ success: true, data: null });
+    service.logo('c1').subscribe();
+    const g = http.expectOne(`${base}/customers/c1/logo`);
+    expect(g.request.method).toBe('GET');
+    g.flush({ success: true, data: { dataUrl: null } });
+  });
 });

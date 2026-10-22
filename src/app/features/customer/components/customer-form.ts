@@ -7,6 +7,7 @@ import { UiCard } from '@shared/components/ui-card/ui-card';
 import { UiInput } from '@shared/components/ui-input/ui-input';
 import { UiSelect, SelectOption } from '@shared/components/ui-select/ui-select';
 import { UiButton } from '@shared/components/ui-button/ui-button';
+import { LogoPicker } from './logo-picker';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   BILLING_FREQUENCIES, BILLING_FREQUENCY_LABELS, BillingFrequency, CUSTOMER_PAYMENT_MODES, CUSTOMER_TYPES,
@@ -20,6 +21,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE = /^[+]?[0-9 \-]{7,20}$/;
 const GSTIN = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const PAN = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+const WEBSITE = /^https?:\/\/\S{3,245}$/;
 
 const TYPE_OPTS: SelectOption[] = CUSTOMER_TYPES.map((t) => ({
   value: t, label: t.charAt(0) + t.slice(1).toLowerCase()
@@ -52,7 +54,7 @@ function upperPattern(pattern: RegExp) {
   selector: 'app-customer-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, UiCard, UiInput, UiSelect, UiButton, MatCheckboxModule],
+  imports: [ReactiveFormsModule, UiCard, UiInput, UiSelect, UiButton, MatCheckboxModule, LogoPicker],
   template: `
     <form [formGroup]="form" (ngSubmit)="submit()" class="cform">
       <app-card title="Basic Information" subtitle="Identity and classification.">
@@ -83,6 +85,13 @@ function upperPattern(pattern: RegExp) {
           <app-input [control]="c('mobile')" label="Mobile" type="tel" [required]="true" placeholder="+91 90000 00000" [maxLength]="20" />
           <app-input [control]="c('alternateMobile')" label="Alternate Mobile" type="tel" placeholder="+91 80 0000 0000" [maxLength]="20" />
           <app-input [control]="c('email')" label="Email" type="email" placeholder="asha@company.com" [maxLength]="255" />
+        </div>
+      </app-card>
+
+      <app-card title="Brand" subtitle="Shown to this customer in the shipping portal, next to their name.">
+        <div class="grid">
+          <app-input [control]="c('website')" label="Website" placeholder="https://www.example.com" [maxLength]="250" />
+          <app-logo-picker label="Brand logo" [current]="logoUrl()" (picked)="logoPicked.emit($event)" />
         </div>
       </app-card>
 
@@ -162,6 +171,10 @@ export class CustomerForm {
   readonly initialType = input<CustomerType>('INDIVIDUAL');
 
   readonly saved = output<CreateCustomerRequest | UpdateCustomerRequest>();
+  /** The brand logo already saved (a data URL), when editing. */
+  readonly logoUrl = input<string | null>(null);
+  /** The logo the user chose (a File) or removed (null); the page uploads it after saving the customer. */
+  readonly logoPicked = output<File | null>();
   readonly cancelled = output<void>();
 
   protected readonly types = TYPE_OPTS;
@@ -193,7 +206,7 @@ export class CustomerForm {
       customerType: cust.customerType, companyName: cust.companyName ?? '',
       firstName: cust.firstName, middleName: cust.middleName ?? '', lastName: cust.lastName,
       mobile: cust.mobile, alternateMobile: cust.alternateMobile ?? '', email: cust.email ?? '',
-      gstNumber: cust.gstNumber ?? '', panNumber: cust.panNumber ?? '',
+      gstNumber: cust.gstNumber ?? '', panNumber: cust.panNumber ?? '', website: cust.website ?? '',
       whatsappEnabled: cust.whatsappEnabled, smsEnabled: cust.smsEnabled, emailEnabled: cust.emailEnabled,
       contactPerson: cust.contactPerson ?? '',
       defaultPaymentMode: cust.defaultPaymentMode ?? 'PAID', billingFrequency: cust.billingFrequency ?? 'MONTHLY',
@@ -218,6 +231,7 @@ export class CustomerForm {
       email: ['', [emailish, Validators.maxLength(255)]],
       gstNumber: ['', [upperPattern(GSTIN), Validators.maxLength(15)]],
       panNumber: ['', [upperPattern(PAN), Validators.maxLength(10)]],
+      website: ['', [Validators.pattern(WEBSITE), Validators.maxLength(255)]],
       whatsappEnabled: [true],
       smsEnabled: [true],
       emailEnabled: [true],
@@ -247,7 +261,7 @@ export class CustomerForm {
       companyName: trim(v.companyName),
       firstName: v.firstName.trim(), middleName: trim(v.middleName), lastName: v.lastName.trim(),
       mobile: v.mobile.trim(), alternateMobile: trim(v.alternateMobile), email: trim(v.email),
-      gstNumber: upper(v.gstNumber), panNumber: upper(v.panNumber),
+      gstNumber: upper(v.gstNumber), panNumber: upper(v.panNumber), website: trim(v.website),
       whatsappEnabled: !!v.whatsappEnabled, smsEnabled: !!v.smsEnabled, emailEnabled: !!v.emailEnabled,
       contactPerson: trim(v.contactPerson),
       defaultPaymentMode: v.defaultPaymentMode as CustomerPaymentMode,
