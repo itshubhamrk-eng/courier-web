@@ -119,6 +119,21 @@ interface Card {
                     <span class="hint">Save your changes to test them.</span>
                   }
                 </form>
+
+                <div class="hook">
+                  <strong>Status updates</strong>
+                  @if (card.info.webhookUrl; as url) {
+                    <span class="hint">Shipment statuses are checked with {{ card.info.name }} every hour. For instant updates, paste
+                      this address in {{ card.info.name }}'s panel ({{ hookWhere(card.info.code) }}).</span>
+                    <div class="hook__row">
+                      <code class="hook__url">{{ url }}</code>
+                      <app-button type="button" variant="stroked" icon="content_copy" (pressed)="copy(url)">Copy</app-button>
+                    </div>
+                    <span class="hint">Keep it private: anyone with this address can send status updates for your shipments.</span>
+                  } @else {
+                    <span class="hint">Save this courier to get its webhook address for instant status updates.</span>
+                  }
+                </div>
               }
             </div>
           </app-card>
@@ -148,6 +163,10 @@ interface Card {
     .ci__result .ok { color:var(--success); }
     .ci__result .bad { color:var(--danger); }
     .ci__actions { display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; }
+    .hook { display:flex; flex-direction:column; gap:6px; padding-top:12px; border-top:1px solid var(--surface-border); }
+    .hook__row { display:flex; gap:8px; align-items:center; }
+    .hook__url { flex:1; min-width:0; overflow-wrap:anywhere; padding:8px 10px; border-radius:8px; background:var(--surface-muted);
+      font:500 12px ui-monospace, SFMono-Regular, Menlo, monospace; user-select:all; }
     .alert { padding:10px 12px; border-radius:8px; background:color-mix(in srgb, var(--danger) 10%, transparent); color:var(--danger); font:500 13px var(--font-sans); }
   `]
 })
@@ -161,6 +180,22 @@ export class CourierIntegrations implements OnInit {
   readonly cards = signal<Card[]>([]);
   readonly busy = signal<Set<string>>(new Set());
   readonly error = signal<string | null>(null);
+
+  /** Where each courier's panel takes a webhook address. */
+  hookWhere(code: string): string {
+    return code === 'SHIPROCKET' ? 'Settings → API → Webhooks'
+      : code === 'DELHIVERY' ? 'ask your Delhivery account manager to enable status push to it'
+      : 'webhook settings';
+  }
+
+  copy(url: string): void {
+    const done = () => this.notify.success('Webhook address copied.');
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(done, () => this.notify.error('Copy failed. Select the address and copy it by hand.'));
+    } else {
+      this.notify.error('Copy is not available here. Select the address and copy it by hand.');
+    }
+  }
 
   ngOnInit(): void {
     this.breadcrumb.set([{ label: 'Administration' }, { label: 'Courier Integrations' }]);

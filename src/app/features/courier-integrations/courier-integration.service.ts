@@ -35,6 +35,8 @@ export interface CourierIntegration {
   lastTestMessage: string | null;
   /** The courier's logo as a data URL, or null. */
   logoDataUrl: string | null;
+  /** Where this courier pushes status updates for the company; null until the courier has been saved. */
+  webhookUrl?: string | null;
 }
 
 export interface SaveIntegrationRequest {
