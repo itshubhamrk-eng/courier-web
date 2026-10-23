@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -48,6 +49,23 @@ describe('CourierIntegrations', () => {
     const test = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
       .find((b) => b.textContent?.includes('Test connection'))!;
     expect(test.disabled).toBe(true);
+  });
+
+  it('shows the webhook address of a saved courier, with a copy button', async () => {
+    const fixture = create(shiprocket({ webhookUrl: 'https://courier.example/api/v1/webhooks/courier-tracking/abc123' }));
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('https://courier.example/api/v1/webhooks/courier-tracking/abc123');
+    expect(text).toContain('Settings → API → Webhooks');
+    const write = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: write }, configurable: true });
+    fixture.componentInstance.copy('https://courier.example/api/v1/webhooks/courier-tracking/abc123');
+    expect(write).toHaveBeenCalledWith('https://courier.example/api/v1/webhooks/courier-tracking/abc123');
+    await Promise.resolve();
+  });
+
+  it('has no webhook address before the courier is saved', () => {
+    const unsaved = create(shiprocket({ webhookUrl: null }));
+    expect(unsaved.nativeElement.textContent).toContain('Save this courier to get its webhook address');
   });
 
   it('never fills a secret field: it starts empty and says it is configured', () => {
