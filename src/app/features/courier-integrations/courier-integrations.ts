@@ -113,7 +113,11 @@ interface Card {
                       [disabled]="!card.info.enabled || card.form.dirty" (pressed)="test(card)">Test connection</app-button>
                     <app-button type="submit" icon="save" [loading]="busy().has(card.info.code + ':save')">Save</app-button>
                   </div>
-                  @if (card.form.dirty && card.info.enabled) { <span class="hint">Save your changes to test them.</span> }
+                  @if (!card.info.enabled) {
+                    <span class="hint">Turn this courier on, fill in its details and save — then you can test the connection.</span>
+                  } @else if (card.form.dirty) {
+                    <span class="hint">Save your changes to test them.</span>
+                  }
                 </form>
               }
             </div>

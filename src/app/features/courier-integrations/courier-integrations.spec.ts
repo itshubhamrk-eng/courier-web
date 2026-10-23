@@ -22,12 +22,12 @@ const ekart = { code: 'EKART', name: 'Ekart', available: false, note: 'Integrati
 describe('CourierIntegrations', () => {
   let http: HttpTestingController;
 
-  function create() {
+  function create(first: object = shiprocket()) {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideNoopAnimations()] });
     http = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(CourierIntegrations);
     fixture.detectChanges();
-    http.expectOne(base).flush({ success: true, data: [shiprocket(), ekart] });
+    http.expectOne(base).flush({ success: true, data: [first, ekart] });
     fixture.detectChanges();
     return fixture;
   }
@@ -39,6 +39,15 @@ describe('CourierIntegrations', () => {
     expect(text).toContain('Connected');
     expect(text).toContain('Coming soon');
     expect(fixture.nativeElement.querySelectorAll('form').length).toBe(1);
+  });
+
+  it('explains why Test connection is off for a courier that is not switched on yet', () => {
+    const fixture = create(shiprocket({ enabled: false, connected: false, source: 'NONE' }));
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Turn this courier on, fill in its details and save');
+    const test = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
+      .find((b) => b.textContent?.includes('Test connection'))!;
+    expect(test.disabled).toBe(true);
   });
 
   it('never fills a secret field: it starts empty and says it is configured', () => {
