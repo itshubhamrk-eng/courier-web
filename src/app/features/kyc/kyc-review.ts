@@ -5,7 +5,7 @@ import { BreadcrumbService } from '@core/services/breadcrumb.service';
 import { UiCard } from '@shared/components/ui-card/ui-card';
 import { apiMessage } from '@features/communication/api-error';
 import { KycService } from './kyc.service';
-import { KYC_TYPE_LABELS, KycSubjectType, KycSummary } from './kyc.models';
+import { KYC_STATUS_LABELS, KYC_TYPE_LABELS, KycSubjectType, KycSummary } from './kyc.models';
 
 /** Company administrator: KYC progress of users, branches and business customers, opening each one's documents. */
 @Component({
@@ -18,7 +18,7 @@ import { KYC_TYPE_LABELS, KycSubjectType, KycSummary } from './kyc.models';
       <header class="page__head">
         <div>
           <h1 class="text-h1">KYC Review</h1>
-          <p class="text-caption">Everyone who has started KYC, with their uploaded documents. KYC is approved automatically once complete.</p>
+          <p class="text-caption">Everyone who has started KYC. Open one to view the documents and approve or reject each.</p>
         </div>
       </header>
 
@@ -38,17 +38,18 @@ import { KYC_TYPE_LABELS, KycSubjectType, KycSummary } from './kyc.models';
         } @else {
           <div class="wrap">
             <table>
-              <thead><tr><th>Name</th><th>Status</th><th>Documents</th><th>E-mail</th><th>Mobile</th><th>Updated</th><th></th></tr></thead>
+              <thead><tr><th>Name</th><th>Status</th><th>To review</th><th>Approved</th><th>E-mail</th><th>Mobile</th><th>Updated</th><th></th></tr></thead>
               <tbody>
                 @for (r of rows(); track r.subjectId) {
                   <tr>
                     <td><a [routerLink]="['/kyc/review', r.subjectType, r.subjectId]">{{ r.subjectName }}</a></td>
-                    <td><span class="badge" [class.ok]="r.status === 'COMPLETE'" [class.warn]="r.status !== 'COMPLETE'">{{ r.status === 'COMPLETE' ? 'Complete' : 'Pending' }}</span></td>
-                    <td>{{ r.requiredUploaded }} / {{ r.requiredTotal }}</td>
+                    <td><span class="badge" [class.ok]="r.status === 'COMPLETE'" [class.info]="r.status === 'UNDER_REVIEW'" [class.warn]="r.status === 'PENDING'">{{ statusLabels[r.status] }}</span></td>
+                    <td>@if (r.awaitingReview) { <strong class="todo">{{ r.awaitingReview }}</strong> } @else { — }</td>
+                    <td>{{ r.requiredApproved }} / {{ r.requiredTotal }}</td>
                     <td>{{ r.emailVerified ? 'Verified' : '—' }}</td>
                     <td>{{ r.mobileVerified ? 'Verified' : '—' }}</td>
                     <td>{{ r.updatedAt | date: 'medium' }}</td>
-                    <td class="end"><a [routerLink]="['/kyc/review', r.subjectType, r.subjectId]">View documents →</a></td>
+                    <td class="end"><a [routerLink]="['/kyc/review', r.subjectType, r.subjectId]">{{ r.awaitingReview ? 'Review →' : 'View documents →' }}</a></td>
                   </tr>
                 }
               </tbody>
@@ -69,7 +70,8 @@ import { KYC_TYPE_LABELS, KycSubjectType, KycSummary } from './kyc.models';
     .end { text-align:right; }
     a { color:var(--brand-700); font-weight:600; text-decoration:none; }
     .badge { padding:3px 10px; border-radius:999px; font:700 12px var(--font-sans); }
-    .badge.ok { background:var(--success-bg); color:var(--success); } .badge.warn { background:var(--warning-bg); color:var(--warning); }
+    .badge.ok { background:var(--success-bg); color:var(--success); } .badge.info { background:var(--info-bg); color:var(--info); }
+    .todo { color:var(--warning); } .badge.warn { background:var(--warning-bg); color:var(--warning); }
     .muted { color:var(--content-muted); } .err { color:var(--danger); }
   `]
 })
@@ -78,6 +80,7 @@ export class KycReview implements OnInit {
   private readonly breadcrumb = inject(BreadcrumbService);
   protected readonly types: KycSubjectType[] = ['USER', 'BRANCH', 'CUSTOMER'];
   protected readonly labels = KYC_TYPE_LABELS;
+  protected readonly statusLabels = KYC_STATUS_LABELS;
   readonly type = signal<KycSubjectType>('USER');
   readonly rows = signal<KycSummary[] | null>(null);
   readonly error = signal<string | null>(null);

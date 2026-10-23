@@ -3,7 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { UiButton } from '@shared/components/ui-button/ui-button';
-import { KycChannel, KycSlot, KycView } from './kyc.models';
+import { KYC_STATUS_LABELS, KycChannel, KycSlot, KycView, REVIEW_LABELS } from './kyc.models';
 
 const TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 export const KYC_MAX_BYTES = 5 * 1024 * 1024;
@@ -24,10 +24,11 @@ export const KYC_MAX_BYTES = 5 * 1024 * 1024;
       <header class="kyc__head">
         <div>
           <h2>{{ v.subjectName }}</h2>
-          <p class="muted">{{ v.status === 'COMPLETE' ? 'KYC complete' : 'Upload the documents below and verify your e-mail and mobile.' }}</p>
+          <p class="muted">{{ headline() }}</p>
         </div>
-        <span class="badge" [class.badge--ok]="v.status === 'COMPLETE'" [class.badge--warn]="v.status !== 'COMPLETE'">
-          <mat-icon>{{ v.status === 'COMPLETE' ? 'verified' : 'pending' }}</mat-icon>{{ v.status === 'COMPLETE' ? 'Complete' : 'Pending' }}
+        <span class="badge" [class.badge--ok]="v.status === 'COMPLETE'" [class.badge--info]="v.status === 'UNDER_REVIEW'"
+              [class.badge--warn]="v.status === 'PENDING'">
+          <mat-icon>{{ v.status === 'COMPLETE' ? 'verified' : v.status === 'UNDER_REVIEW' ? 'hourglass_top' : 'pending' }}</mat-icon>{{ statusLabels[v.status] }}
         </span>
       </header>
 
@@ -69,11 +70,18 @@ export const KYC_MAX_BYTES = 5 * 1024 * 1024;
       <div class="rows">
         @for (d of v.documents; track d.code) {
           <div class="row">
-            <mat-icon class="row__icon" [class.ok]="!!d.uploaded">{{ d.uploaded ? 'task' : 'upload_file' }}</mat-icon>
+            <mat-icon class="row__icon" [class.ok]="d.uploaded?.reviewStatus === 'APPROVED'" [class.bad]="d.uploaded?.reviewStatus === 'REJECTED'"
+                      [class.wait]="d.uploaded?.reviewStatus === 'PENDING_REVIEW'">
+              {{ !d.uploaded ? 'upload_file' : d.uploaded.reviewStatus === 'APPROVED' ? 'task' : d.uploaded.reviewStatus === 'REJECTED' ? 'error' : 'hourglass_top' }}
+            </mat-icon>
             <div class="row__main">
               <strong>{{ d.label }} @if (!d.required) { <em class="muted">(optional)</em> }</strong>
               @if (d.uploaded; as u) {
                 <span class="muted">{{ u.fileName }} · {{ u.sizeBytes / 1024 | number: '1.0-0' }} KB · {{ u.uploadedAt | date: 'medium' }}</span>
+                <span class="review" [class.review--ok]="u.reviewStatus === 'APPROVED'" [class.review--bad]="u.reviewStatus === 'REJECTED'">
+                  {{ reviewLabels[u.reviewStatus] }}@if (u.reviewStatus === 'REJECTED' && u.reviewNote) { — {{ u.reviewNote }} }
+                  @if (u.reviewStatus === 'REJECTED' && !readOnly()) { · upload a new file }
+                </span>
               } @else {
                 <span class="muted">{{ d.hint }}</span>
               }
@@ -82,6 +90,14 @@ export const KYC_MAX_BYTES = 5 * 1024 * 1024;
               @if (d.uploaded; as u) {
                 <app-button variant="stroked" icon="visibility" (pressed)="open.emit({ slot: d, download: false })">View</app-button>
                 <app-button variant="text" icon="download" (pressed)="open.emit({ slot: d, download: true })">Download</app-button>
+                @if (reviewable()) {
+                  @if (u.reviewStatus !== 'APPROVED') {
+                    <app-button icon="check" [loading]="busy() === u.id + ':approve'" (pressed)="approve.emit(u.id)">Approve</app-button>
+                  }
+                  @if (u.reviewStatus !== 'REJECTED') {
+                    <app-button variant="danger" icon="close" [loading]="busy() === u.id + ':reject'" (pressed)="reject.emit({ slot: d, documentId: u.id })">Reject</app-button>
+                  }
+                }
               }
               @if (!readOnly()) {
                 <app-button [variant]="d.uploaded ? 'text' : 'primary'" icon="upload" [loading]="busy() === d.code"
@@ -114,7 +130,11 @@ export const KYC_MAX_BYTES = 5 * 1024 * 1024;
     .rows { display:flex; flex-direction:column; border:1px solid var(--surface-border); border-radius:var(--r-card); overflow:hidden; }
     .row { display:flex; align-items:center; gap:14px; padding:12px 16px; border-top:1px solid var(--surface-border); flex-wrap:wrap; }
     .row:first-child { border-top:0; }
-    .row__icon { color:var(--content-muted); } .row__icon.ok { color:var(--success); }
+    .row__icon { color:var(--content-muted); } .row__icon.ok { color:var(--success); } .row__icon.bad { color:var(--danger); }
+    .row__icon.wait { color:var(--warning); }
+    .review { font:600 12px var(--font-sans); color:var(--warning); }
+    .review--ok { color:var(--success); } .review--bad { color:var(--danger); }
+    .badge--info { background:var(--info-bg); color:var(--info); }
     .row__main { flex:1; min-width:12rem; display:flex; flex-direction:column; gap:2px; font-size:14px; }
     .row__main em { font-style:normal; font-weight:500; }
     .row__actions { display:flex; gap:6px; flex-wrap:wrap; }
@@ -126,6 +146,8 @@ export const KYC_MAX_BYTES = 5 * 1024 * 1024;
 export class KycChecklist {
   readonly view = input.required<KycView>();
   readonly readOnly = input(false);
+  /** Company administrator: show Approve / Reject on each uploaded document. */
+  readonly reviewable = input(false);
   /** Which action is in flight: a document code, or "email:send" / "mobile:verify" etc. */
   readonly busy = input<string | null>(null);
 
@@ -134,6 +156,20 @@ export class KycChecklist {
   readonly send = output<KycChannel>();
   readonly verify = output<{ channel: KycChannel; code: string }>();
   readonly open = output<{ slot: KycSlot; download: boolean }>();
+  readonly approve = output<string>();
+  readonly reject = output<{ slot: KycSlot; documentId: string }>();
+
+  protected readonly statusLabels = KYC_STATUS_LABELS;
+  protected readonly reviewLabels = REVIEW_LABELS;
+
+  protected headline(): string {
+    const v = this.view();
+    if (v.status === 'COMPLETE') return 'KYC complete — every document approved.';
+    if (v.status === 'UNDER_REVIEW') return this.reviewable()
+      ? 'Everything is uploaded and verified. Review the documents below.'
+      : 'Everything is uploaded. Your documents are waiting for approval.';
+    return this.readOnly() ? 'KYC not finished yet.' : 'Upload the documents below and verify your e-mail and mobile.';
+  }
 
   protected readonly channels: { key: KycChannel; label: string; icon: string }[] = [
     { key: 'email', label: 'E-mail address', icon: 'mail' },
@@ -145,9 +181,10 @@ export class KycChecklist {
 
   protected done(): number {
     const v = this.view();
-    return v.requiredUploaded + (v.emailVerified ? 1 : 0) + (v.mobileVerified ? 1 : 0);
+    return v.requiredUploaded + v.requiredApproved + (v.emailVerified ? 1 : 0) + (v.mobileVerified ? 1 : 0);
   }
-  protected total(): number { return this.view().requiredTotal + 2; }
+  /** Each required document counts twice (uploaded, approved), plus e-mail and mobile. */
+  protected total(): number { return this.view().requiredTotal * 2 + 2; }
   protected verified(c: KycChannel): boolean { return c === 'email' ? this.view().emailVerified : this.view().mobileVerified; }
 
   protected setCode(c: KycChannel, value: string): void {

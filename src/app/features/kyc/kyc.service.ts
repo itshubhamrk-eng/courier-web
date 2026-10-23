@@ -34,6 +34,12 @@ export class KycService {
   subject(type: KycSubjectType, id: string): Observable<KycView> {
     return this.api.get<KycView>(`${API.kyc}/subjects/${type}/${encodeURIComponent(id)}`);
   }
+  approve(type: KycSubjectType, id: string, documentId: string): Observable<KycView> {
+    return this.api.post<KycView>(`${API.kyc}/subjects/${type}/${encodeURIComponent(id)}/documents/${encodeURIComponent(documentId)}/approve`, {});
+  }
+  reject(type: KycSubjectType, id: string, documentId: string, reason: string): Observable<KycView> {
+    return this.api.post<KycView>(`${API.kyc}/subjects/${type}/${encodeURIComponent(id)}/documents/${encodeURIComponent(documentId)}/reject`, { reason });
+  }
   subjectFile(type: KycSubjectType, id: string, documentId: string): Observable<Blob> {
     return this.api.getBlob(`${API.kyc}/subjects/${type}/${encodeURIComponent(id)}/documents/${encodeURIComponent(documentId)}/file`);
   }
